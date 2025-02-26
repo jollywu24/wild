@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>荒岛求生：归途</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .game-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            text-align: center;
+            width: 18%;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .progress-container {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .health-bar { background-color: #dc3545; }
+        .hunger-bar { background-color: #fd7e14; }
+        .thirst-bar { background-color: #0dcaf0; }
+        .energy-bar { background-color: #20c997; }
+        .morale-bar { background-color: #6f42c1; }
+        
+        .game-log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .action-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1a252f;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .location-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .time-info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .inventory-container {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .inventory-title {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .inventory-item {
+            background-color: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .crafting-container {
+            margin-top: 20px;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .craft-button {
+            background-color: #28a745;
+            margin-top: 5px;
+        }
+        .recipe {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .recipe-requirements {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .game-over {
+            text-align: center;
+            color: #dc3545;
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .restart-button {
+            display: block;
+            margin: 0 auto;
+            background-color: #dc3545;
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>荒岛求生：归途</h1>
+        
+        <div class="time-info" id="timeInfo">第1天 - 早晨</div>
+        
+        <div class="stats-container">
+            <div class="stat">
+                <div>健康</div>
+                <div class="stat-value" id="healthValue">100</div>
+                <div class="progress-container">
+                    <div class="progress-bar health-bar" id="healthBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div>饥饿</div>
+                <div class="stat-value" id="hungerValue">100</div>
+                <div class="progress-container">
+                    <div class="progress-bar hunger-bar" id="hungerBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div>口渴</div>
+                <div class="stat-value" id="thirstValue">100</div>
+                <div class="progress-container">
+                    <div class="progress-bar thirst-bar" id="thirstBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div>体力</div>
+                <div class="stat-value" id="energyValue">100</div>
+                <div class="progress-container">
+                    <div class="progress-bar energy-bar" id="energyBar" style="width: 100%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <div>精神</div>
+                <div class="stat-value" id="moraleValue">80</div>
+                <div class="progress-container">
+                    <div class="progress-bar morale-bar" id="moraleBar" style="width: 80%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="location-info" id="locationInfo">
+            你在海滩上醒来，四周是漂浮的船只残骸。你的记忆有些模糊，只记得自己乘坐的船在暴风雨中遭遇了不测。现在，你被困在这座荒岛上，必须想办法生存下去。
+        </div>
+        
+        <div class="game-log" id="gameLog">
+            <p>你睁开眼睛，发现自己躺在一片陌生的海滩上。阳光刺眼，海浪声不断。</p>
+            <p>你必须开始寻找食物、水和庇护所以生存下去。</p>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab active" id="actionsTab">行动</div>
+            <div class="tab" id="inventoryTab">物品栏</div>
+            <div class="tab" id="craftingTab">制作</div>
+        </div>
+        
+        <div class="tab-content active" id="actionsContent">
+            <div class="action-container">
+                <button id="exploreBtn">探索周围</button>
+                <button id="gatherBtn">采集资源</button>
+                <button id="huntBtn">寻找食物</button>
+                <button id="waterBtn">寻找水源</button>
+                <button id="restBtn">休息</button>
+                <button id="buildBtn" disabled>建造庇护所</button>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="inventoryContent">
+            <div class="inventory-container">
+                <h3 class="inventory-title">物品栏</h3>
+                <div class="inventory-items" id="inventoryItems">
+                    <!-- 物品会动态添加到这里 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="craftingContent">
+            <div class="crafting-container">
+                <h3>制作物品</h3>
+                <div id="craftingRecipes">
+                    <!-- 制作配方会动态添加到这里 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            // 玩家属性
+            health: 100,
+            hunger: 100,
+            thirst: 100,
+            energy: 100,
+            morale: 80,
+            
+            // 时间系统
+            day: 1,
+            timeOfDay: 'morning', // morning, afternoon, evening, night
+            
+            // 位置系统
+            currentLocation: 'beach',
+            discoveredLocations: ['beach'],
+            
+            // 物品栏
+            inventory: {
+                '破布': 1,
+                '木棍': 1
+            },
+            
+            // 已建造的庇护所
+            hasShelter: false,
+            shelterType: null,
+            
+            // 游戏状态
+            gameOver: false
+        };
+        
+        // 游戏配置
+        const gameConfig = {
+            // 位置信息
+            locations: {
+                'beach': {
+                    name: '海滩',
+                    description: '沙滩上散落着船只残骸和一些物资。远处可以看到茂密的丛林。',
+                    resources: ['木棍', '破布', '椰子', '贝壳'],
+                    waterChance: 0.3,
+                    foodChance: 0.4,
+                    exploreChance: 0.7
+                },
+                'jungle': {
+                    name: '丛林',
+                    description: '茂密的热带丛林，树木高大，遮天蔽日。这里有各种植物和可能的动物。',
+                    resources: ['木材', '藤蔓', '浆果', '草药'],
+                    waterChance: 0.6,
+                    foodChance: 0.5,
+                    exploreChance: 0.5
+                },
+                'cliff': {
+                    name: '悬崖',
+                    description: '岛屿的一侧是陡峭的悬崖，从这里可以俯瞰整个海域。或许能发现些什么。',
+                    resources: ['石头', '藤蔓'],
+                    waterChance: 0.1,
+                    foodChance: 0.2,
+                    exploreChance: 0.3
+                },
+                'cave': {
+                    name: '洞穴',
+                    description: '一个隐蔽的洞穴，可以提供天然的庇护，但也可能有危险。',
+                    resources: ['石头', '矿石'],
+                    waterChance: 0.4,
+                    foodChance: 0.1,
+                    exploreChance: 0.2
+                }
+            },
+            
+            // 制作配方
+            recipes: {
+                '简易工具': {
+                    requirements: { '木棍': 2, '石头': 1 },
+                    description: '用于更有效地收集资源的基础工具。'
+                },
+                '火把': {
+                    requirements: { '木棍': 1, '草药': 1 },
+                    description: '可以在夜间提供光明和温暖。'
+                },
+                '简易庇护所': {
+                    requirements: { '木棍': 5, '树叶': 10, '藤蔓': 3 },
+                    description: '基础的庇护所，可以防风挡雨。'
+                },
+                '净水器': {
+                    requirements: { '贝壳': 3, '沙子': 2, '木炭': 1 },
+                    description: '可以过滤盐水，获得淡水。'
+                },
+                '木矛': {
+                    requirements: { '木棍': 2, '石头': 1, '藤蔓': 1 },
+                    description: '用于狩猎和自卫的武器。'
+                }
+            },
+            
+            // 资源获取概率和数量
+            gatheringResults: {
+                'beach': {
+                    '木棍': { chance: 0.7, min: 1, max: 3 },
+                    '破布': { chance: 0.3, min: 1, max: 1 },
+                    '椰子': { chance: 0.4, min: 1, max: 2 },
+                    '贝壳': { chance: 0.5, min: 1, max: 4 },
+                    '沙子': { chance: 0.9, min: 2, max: 5 }
+                },
+                'jungle': {
+                    '木材': { chance: 0.6, min: 1, max: 3 },
+                    '藤蔓': { chance: 0.5, min: 1, max: 3 },
+                    '浆果': { chance: 0.4, min: 1, max: 4 },
+                    '树叶': { chance: 0.8, min: 3, max: 8 },
+                    '草药': { chance: 0.3, min: 1, max: 2 }
+                },
+                'cliff': {
+                    '石头': { chance: 0.7, min: 1, max: 4 },
+                    '藤蔓': { chance: 0.3, min: 1, max: 2 }
+                },
+                'cave': {
+                    '石头': { chance: 0.8, min: 2, max: 5 },
+                    '矿石': { chance: 0.3, min: 1, max: 1 },
+                    '木炭': { chance: 0.4, min: 1, max: 2 }
+                }
+            },
+            
+            // 食物和水的补充值
+            foodValues: {
+                '椰子': { hunger: 15, thirst: 10 },
+                '浆果': { hunger: 10, thirst: 5 },
+                '鱼': { hunger: 30, thirst: 0 },
+                '小动物': { hunger: 40, thirst: 0 }
+            },
+            waterValues: {
+                '淡水': { thirst: 40 },
+                '椰子水': { thirst: 20 },
+                '雨水': { thirst: 30 }
+            }
+        };
+        
+        // DOM 元素
+        const elements = {
+            healthValue: document.getElementById('healthValue'),
+            healthBar: document.getElementById('healthBar'),
+            hungerValue: document.getElementById('hungerValue'),
+            hungerBar: document.getElementById('hungerBar'),
+            thirstValue: document.getElementById('thirstValue'),
+            thirstBar: document.getElementById('thirstBar'),
+            energyValue: document.getElementById('energyValue'),
+            energyBar: document.getElementById('energyBar'),
+            moraleValue: document.getElementById('moraleValue'),
+            moraleBar: document.getElementById('moraleBar'),
+            gameLog: document.getElementById('gameLog'),
+            locationInfo: document.getElementById('locationInfo'),
+            timeInfo: document.getElementById('timeInfo'),
+            inventoryItems: document.getElementById('inventoryItems'),
+            craftingRecipes: document.getElementById('craftingRecipes'),
+            
+            // 按钮
+            exploreBtn: document.getElementById('exploreBtn'),
+            gatherBtn: document.getElementById('gatherBtn'),
+            huntBtn: document.getElementById('huntBtn'),
+            waterBtn: document.getElementById('waterBtn'),
+            restBtn: document.getElementById('restBtn'),
+            buildBtn: document.getElementById('buildBtn'),
+            
+            // 标签页
+            actionsTab: document.getElementById('actionsTab'),
+            inventoryTab: document.getElementById('inventoryTab'),
+            craftingTab: document.getElementById('craftingTab'),
+            actionsContent: document.getElementById('actionsContent'),
+            inventoryContent: document.getElementById('inventoryContent'),
+            craftingContent: document.getElementById('craftingContent')
+        };
+        
+        // 辅助函数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        function getRandomFloat() {
+            return Math.random();
+        }
+        
+        function log(message) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            elements.gameLog.appendChild(p);
+            elements.gameLog.scrollTop = elements.gameLog.scrollHeight;
+        }
+        
+        function updateStats() {
+            // 更新所有状态显示
+            elements.healthValue.textContent = Math.round(gameState.health);
+            elements.healthBar.style.width = `${gameState.health}%`;
+            
+            elements.hungerValue.textContent = Math.round(gameState.hunger);
+            elements.hungerBar.style.width = `${gameState.hunger}%`;
+            
+            elements.thirstValue.textContent = Math.round(gameState.thirst);
+            elements.thirstBar.style.width = `${gameState.thirst}%`;
+            
+            elements.energyValue.textContent = Math.round(gameState.energy);
+            elements.energyBar.style.width = `${gameState.energy}%`;
+            
+            elements.moraleValue.textContent = Math.round(gameState.morale);
+            elements.moraleBar.style.width = `${gameState.morale}%`;
+            
+            // 更新时间信息
+            let timeString = '';
+            switch(gameState.timeOfDay) {
+                case 'morning':
+                    timeString = '早晨';
+                    break;
+                case 'afternoon':
+                    timeString = '下午';
+                    break;
+                case 'evening':
+                    timeString = '傍晚';
+                    break;
+                case 'night':
+                    timeString = '夜晚';
+                    break;
+            }
+            elements.timeInfo.textContent = `第${gameState.day}天 - ${timeString}`;
+            
+            // 更新位置信息
+            const location = gameConfig.locations[gameState.currentLocation];
+            elements.locationInfo.textContent = location.description;
+            
+            // 检查游戏是否结束
+            if (gameState.health <= 0 && !gameState.gameOver) {
+                gameOver();
+            }
+        }
+        
+        function updateInventory() {
+            elements.inventoryItems.innerHTML = '';
+            
+            if (Object.keys(gameState.inventory).length === 0) {
+                const emptyItem = document.createElement('div');
+                emptyItem.textContent = '物品栏为空';
+                elements.inventoryItems.appendChild(emptyItem);
+            } else {
+                for (const [item, count] of Object.entries(gameState.inventory)) {
+                    if (count > 0) {
+                        const itemElement = document.createElement('div');
+                        itemElement.className = 'inventory-item';
+                        itemElement.textContent = `${item} x${count}`;
+                        elements.inventoryItems.appendChild(itemElement);
+                    }
+                }
+            }
+            
+            // 检查是否可以建造庇护所
+            if (!gameState.hasShelter) {
+                const canBuildShelter = checkRecipeRequirements(gameConfig.recipes['简易庇护所'].requirements);
+                elements.buildBtn.disabled = !canBuildShelter;
+            } else {
+                elements.buildBtn.disabled = true;
+            }
+            
+            updateCraftingRecipes();
+        }
+        
+        function updateCraftingRecipes() {
+            elements.craftingRecipes.innerHTML = '';
+            
+            for (const [recipe, details] of Object.entries(gameConfig.recipes)) {
+                const recipeElement = document.createElement('div');
+                recipeElement.className = 'recipe';
+                
+                const recipeName = document.createElement('div');
+                recipeName.textContent = recipe;
+                recipeName.style.fontWeight = 'bold';
+                
+                const recipeDesc = document.createElement('div');
+                recipeDesc.textContent = details.description;
+                
+                const recipeReq = document.createElement('div');
+                recipeReq.className = 'recipe-requirements';
+                recipeReq.textContent = '需要: ' + Object.entries(details.requirements)
+                    .map(([item, count]) => `${item} x${count}`)
+                    .join(', ');
+                
+                const canCraft = checkRecipeRequirements(details.requirements);
+                
+                const craftBtn = document.createElement('button');
+                craftBtn.className = 'craft-button';
+                craftBtn.textContent = '制作';
+                craftBtn.disabled = !canCraft;
+                
+                if (canCraft) {
+                    craftBtn.onclick = () => craftItem(recipe, details.requirements);
+                }
+                
+                recipeElement.appendChild(recipeName);
+                recipeElement.appendChild(recipeDesc);
+                recipeElement.appendChild(recipeReq);
+                recipeElement.appendChild(craftBtn);
+                
+                elements.craftingRecipes.appendChild(recipeElement);
+            }
+        }
+        
+        function checkRecipeRequirements(requirements) {
+            for (const [item, count] of Object.entries(requirements)) {
+                if (!gameState.inventory[item] || gameState.inventory[item] < count) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function consumeResources(requirements) {
+            for (const [item, count] of Object.entries(requirements)) {
+                gameState.inventory[item] -= count;
+                if (gameState.inventory[item] <= 0) {
+                    delete gameState.inventory[item];
+                }
+            }
+        }
+        
+        function craftItem(recipe, requirements) {
+            if (checkRecipeRequirements(requirements)) {
+                consumeResources(requirements);
+                
+                if (recipe === '简易庇护所') {
+                    gameState.hasShelter = true;
+                    gameState.shelterType = '简易庇护所';
+                    log('你成功建造了一个简易庇护所。它能为你提供基本的遮风挡雨。');
+                    
+                    // 建造庇护所提升精神值
+                    gameState.morale = Math.min(100, gameState.morale + 20);
+                } else {
+                    // 添加物品到库存
+                    if (!gameState.inventory[recipe]) {
+                        gameState.inventory[recipe] = 0;
+                    }
+                    gameState.inventory[recipe]++;
+                    log(`你成功制作了一个${recipe}。`);
+                }
+                
+                // 消耗能量
+                gameState.energy = Math.max(0, gameState.energy - 10);
+                
+                updateInventory();
+                updateStats();
+            }
+        }
+        
+        function addToInventory(item, count) {
+            if (!gameState.inventory[item]) {
+                gameState.inventory[item] = 0;
+            }
+            gameState.inventory[item] += count;
+            updateInventory();
+        }
+        
+        function advanceTime() {
+            // 根据当前时间推进到下一个时间段
+            switch(gameState.timeOfDay) {
+                case 'morning':
+                    gameState.timeOfDay = 'afternoon';
+                    break;
+                case 'afternoon':
+                    gameState.timeOfDay = 'evening';
+                    break;
+                case 'evening':
+                    gameState.timeOfDay = 'night';
+                    break;
+                case 'night':
+                    gameState.timeOfDay = 'morning';
+                    gameState.day++;
+                    break;
+            }
+            
+            // 消耗资源
+            gameState.hunger = Math.max(0, gameState.hunger - 5);
+            gameState.thirst = Math.max(0, gameState.thirst - 8);
+            
+            // 饥饿和口渴会影响健康
+            if (gameState.hunger <= 0) {
+                gameState.health = Math.max(0, gameState.health - 10);
+                log('你极度饥饿，健康开始恶化。');
+            }
+            
+            if (gameState.thirst <= 0) {
+                gameState.health = Math.max(0, gameState.health - 15);
+                log('你极度口渴，健康迅速恶化。');
+            }
+            
+            // 夜晚休息恢复能量
+            if (gameState.timeOfDay === 'morning') {
+                if (gameState.hasShelter) {
+                    gameState.energy = Math.min(100, gameState.energy + 40);
+                    log('你在庇护所中度过了一个安稳的夜晚，体力得到恢复。');
+                } else {
+                    gameState.energy = Math.min(100, gameState.energy + 20);
+                    gameState.health = Math.max(0, gameState.health - 5);
+                    log('你在露天度过了一个不安稳的夜晚，只恢复了一些体力，并损失了一些健康。');
+                }
+            }
+            
+            // 随机事件
+            if (getRandomFloat() < 0.2) { // 20% 概率发生随机事件
+                triggerRandomEvent();
+            }
+            
+            updateStats();
+        }
+        
+        function triggerRandomEvent() {
+            const events = [
+                {
+                    name: '突然降雨',
+                    condition: () => true, // 任何时候都可能发生
+                    effect: () => {
+                        log('天空乌云密布，突然下起了大雨。');
+                        if (gameState.hasShelter) {
+                            log('幸好你有庇护所，没有被淋湿。你还收集了一些雨水。');
+                            addToInventory('雨水', 1);
+                        } else {
+                            log('你没有庇护所，被大雨淋得浑身湿透，损失了一些健康。');
+                            gameState.health = Math.max(0, gameState.health - 10);
+                            gameState.morale = Math.max(0, gameState.morale - 5);
+                        }
+                    }
+                },
+                {
+                    name: '发现物资',
+                    condition: () => gameState.timeOfDay !== 'night', // 非夜晚才能发生
+                    effect: () => {
+                        log('你意外发现了一些漂流到岸边的物资！');
+                        const possibleItems = ['木材', '绳索', '铁钉', '布料', '药品'];
+                        const item = possibleItems[Math.floor(Math.random() * possibleItems.length)];
+                        const count = getRandomInt(1, 3);
+                        addToInventory(item, count);
+                        log(`你获得了 ${item} x${count}`);
+                        gameState.morale = Math.min(100, gameState.morale + 10);
+                    }
+                },
+                {
+                    name: '野生动物',
+                    condition: () => gameState.currentLocation === 'jungle' || gameState.currentLocation === 'beach',
+                    effect: () => {
+                        if (gameState.inventory['木矛']) {
+                            log('你遇到了一只野兽，幸好你有木矛，成功狩猎了它！');
+                            addToInventory('肉', getRandomInt(2, 4));
+                            gameState.morale = Math.min(100, gameState.morale + 15);
+                        } else {
+                            log('你遇到了一只野兽，由于没有武器，你只能逃跑，消耗了额外的体力。');
+                            gameState.energy = Math.max(0, gameState.energy - 20);
+                        }
+                    }
+                }
+            ];
+            
+            // 筛选出符合条件的事件
+            const possibleEvents = events.filter(e => e.condition());
+            
+            if (possibleEvents.length > 0) {
+                // 随机选择一个事件
+                const event = possibleEvents[Math.floor(Math.random() * possibleEvents.length)];
+                event.effect();
+            }
+        }
+        
+        function explore() {
+            if (gameState.energy < 20) {
+                log('你太疲惫了，无法探索。需要休息恢复体力。');
+                return;
+            }
+            
+            log(`你开始探索${gameConfig.locations[gameState.currentLocation].name}周围的区域...`);
+            
+            // 消耗能量
+            gameState.energy = Math.max(0, gameState.energy - 20);
+            
+            // 探索新地点的概率
+            const exploreChance = gameConfig.locations[gameState.currentLocation].exploreChance;
+            
+            if (getRandomFloat() < exploreChance) {
+                // 成功探索到新地点
+                const discoveredLocations = gameState.discoveredLocations;
+                const possibleLocations = Object.keys(gameConfig.locations)
+                    .filter(loc => !discoveredLocations.includes(loc));
+                
+                if (possibleLocations.length > 0) {
+                    const newLocation = possibleLocations[Math.floor(Math.random() * possibleLocations.length)];
+                    gameState.discoveredLocations.push(newLocation);
+                    
+                    log(`你发现了一个新地点：${gameConfig.locations[newLocation].name}！`);
+                    
+                    // 给玩家选择是否前往新地点的按钮
+                    const goButton = document.createElement('button');
+                    goButton.textContent = `前往${gameConfig.locations[newLocation].name}`;
+                    goButton.onclick = () => {
+                        gameState.currentLocation = newLocation;
+                        log(`你来到了${gameConfig.locations[newLocation].name}。`);
+                        updateStats();
+                        goButton.remove();
+                        stayButton.remove();
+                    };
+                    
+                    const stayButton = document.createElement('button');
+                    stayButton.textContent = '留在原地';
+                    stayButton.onclick = () => {
+                        log(`你决定暂时留在${gameConfig.locations[gameState.currentLocation].name}。`);
+                        goButton.remove();
+                        stayButton.remove();
+                    };
+                    
+                    elements.gameLog.appendChild(goButton);
+                    elements.gameLog.appendChild(stayButton);
+                    elements.gameLog.scrollTop = elements.gameLog.scrollHeight;
+                } else {
+                    log(`你已经探索了岛上所有可到达的地点。`);
+                    
+                    // 找到一些资源作为补偿
+                    gatherResources(true);
+                }
+            } else {
+                log(`你探索了一段时间，但没有发现新的地点。`);
+                
+                // 虽然没发现新地点，但可能找到一些资源
+                if (getRandomFloat() < 0.5) {
+                    gatherResources(true);
+                }
+            }
+            
+            // 时间前进
+            advanceTime();
+        }
+        
+        function gatherResources(fromExplore = false) {
+            if (!fromExplore && gameState.energy < 15) {
+                log('你太疲惫了，无法采集资源。需要休息恢复体力。');
+                return;
+            }
+            
+            if (!fromExplore) {
+                // 消耗能量
+                gameState.energy = Math.max(0, gameState.energy - 15);
+                log(`你开始在${gameConfig.locations[gameState.currentLocation].name}周围寻找资源...`);
+            }
+            
+            const location = gameState.currentLocation;
+            const gatherable = gameConfig.gatheringResults[location];
+            let foundAnything = false;
+            
+            for (const [resource, details] of Object.entries(gatherable)) {
+                if (getRandomFloat() < details.chance) {
+                    const amount = getRandomInt(details.min, details.max);
+                    addToInventory(resource, amount);
+                    log(`你找到了 ${resource} x${amount}`);
+                    foundAnything = true;
+                }
+            }
+            
+            if (!foundAnything) {
+                log('你四处寻找，但没有发现任何有用的资源。');
+                gameState.morale = Math.max(0, gameState.morale - 5);
+            } else {
+                gameState.morale = Math.min(100, gameState.morale + 5);
+            }
+            
+            if (!fromExplore) {
+                // 时间前进
+                advanceTime();
+            }
+        }
+        
+        function findFood() {
+            if (gameState.energy < 25) {
+                log('你太疲惫了，无法寻找食物。需要休息恢复体力。');
+                return;
+            }
+            
+            // 消耗能量
+            gameState.energy = Math.max(0, gameState.energy - 25);
+            
+            log(`你开始寻找食物...`);
+            
+            const location = gameState.currentLocation;
+            const foodChance = gameConfig.locations[location].foodChance;
+            
+            if (gameState.inventory['木矛']) {
+                // 有木矛增加获取食物的几率
+                if (getRandomFloat() < foodChance * 1.5) {
+                    const foods = ['鱼', '小动物'];
+                    const food = foods[Math.floor(Math.random() * foods.length)];
+                    const amount = getRandomInt(1, 2);
+                    
+                    addToInventory(food, amount);
+                    log(`使用木矛，你成功捕获了 ${food} x${amount}！`);
+                    
+                    // 即时食用部分
+                    consumeFood(food);
+                } else {
+                    log('尽管你有木矛，但今天运气不佳，没有捕获到任何猎物。');
+                    gameState.morale = Math.max(0, gameState.morale - 5);
+                }
+            } else {
+                // 没有工具，主要找植物类食物
+                if (getRandomFloat() < foodChance) {
+                    if (location === 'beach' && getRandomFloat() < 0.6) {
+                        const amount = getRandomInt(1, 2);
+                        addToInventory('椰子', amount);
+                        log(`你找到了 椰子 x${amount}`);
+                        
+                        // 即时食用部分
+                        consumeFood('椰子');
+                    } else if (location === 'jungle' && getRandomFloat() < 0.7) {
+                        const amount = getRandomInt(1, 3);
+                        addToInventory('浆果', amount);
+                        log(`你找到了 浆果 x${amount}`);
+                        
+                        // 即时食用部分
+                        consumeFood('浆果');
+                    } else {
+                        log('你努力寻找，但没有发现任何可食用的东西。');
+                        gameState.morale = Math.max(0, gameState.morale - 5);
+                    }
+                } else {
+                    log('你努力寻找，但没有发现任何可食用的东西。');
+                    gameState.morale = Math.max(0, gameState.morale - 5);
+                }
+            }
+            
+            // 时间前进
+            advanceTime();
+        }
+        
+        function consumeFood(food) {
+            if (gameConfig.foodValues[food]) {
+                const values = gameConfig.foodValues[food];
+                gameState.hunger = Math.min(100, gameState.hunger + values.hunger);
+                gameState.thirst = Math.min(100, gameState.thirst + values.thirst);
+                
+                log(`你吃了一些${food}，感觉饱腹感增加了。`);
+                if (values.thirst > 0) {
+                    log(`${food}中含有一些水分，缓解了一些口渴。`);
+                }
+                
+                gameState.morale = Math.min(100, gameState.morale + 5);
+                updateStats();
+            }
+        }
+        
+        function findWater() {
+            if (gameState.energy < 20) {
+                log('你太疲惫了，无法寻找水源。需要休息恢复体力。');
+                return;
+            }
+            
+            // 消耗能量
+            gameState.energy = Math.max(0, gameState.energy - 20);
+            
+            log(`你开始寻找水源...`);
+            
+            const location = gameState.currentLocation;
+            const waterChance = gameConfig.locations[location].waterChance;
+            
+            if (gameState.inventory['净水器']) {
+                // 有净水器可以从海水获取淡水
+                const amount = getRandomInt(1, 2);
+                addToInventory('淡水', amount);
+                log(`使用净水器，你成功过滤了 淡水 x${amount}！`);
+                
+                // 即时饮用部分
+                drinkWater('淡水');
+            } else {
+                // 根据地点和几率寻找自然水源
+                if (getRandomFloat() < waterChance) {
+                    if (location === 'jungle' || location === 'cave') {
+                        const amount = getRandomInt(1, 1);
+                        addToInventory('淡水', amount);
+                        log(`你找到了一处小水源，获得了 淡水 x${amount}`);
+                        
+                        // 即时饮用部分
+                        drinkWater('淡水');
+                    } else if (location === 'beach' && getRandomFloat() < 0.5) {
+                        const amount = getRandomInt(1, 2);
+                        addToInventory('椰子', amount);
+                        log(`你找到了含有椰子水的 椰子 x${amount}`);
+                        
+                        // 即时饮用部分
+                        drinkWater('椰子水');
+                    } else {
+                        log('你努力寻找，但没有发现任何水源。');
+                        gameState.morale = Math.max(0, gameState.morale - 8);
+                    }
+                } else {
+                    log('你努力寻找，但没有发现任何水源。');
+                    gameState.morale = Math.max(0, gameState.morale - 8);
+                }
+            }
+            
+            // 时间前进
+            advanceTime();
+        }
+        
+        function drinkWater(waterType) {
+            if (gameConfig.waterValues[waterType]) {
+                const values = gameConfig.waterValues[waterType];
+                gameState.thirst = Math.min(100, gameState.thirst + values.thirst);
+                
+                log(`你喝了${waterType}，感觉口渴得到了缓解。`);
+                
+                gameState.morale = Math.min(100, gameState.morale + 5);
+                updateStats();
+            }
+        }
+        
+        function rest() {
+            log('你决定休息一会儿...');
+            
+            // 根据是否有庇护所恢复不同数量的能量
+            if (gameState.hasShelter) {
+                gameState.energy = Math.min(100, gameState.energy + 40);
+                log('在庇护所的保护下，你得到了充分的休息。');
+            } else {
+                gameState.energy = Math.min(100, gameState.energy + 25);
+                log('没有庇护所，你只能在露天休息，恢复了一些体力。');
+            }
+            
+            gameState.morale = Math.min(100, gameState.morale + 5);
+            
+            // 时间前进
+            advanceTime();
+        }
+        
+        function buildShelter() {
+            if (!checkRecipeRequirements(gameConfig.recipes['简易庇护所'].requirements)) {
+                log('你没有足够的材料建造庇护所。');
+                return;
+            }
+            
+            if (gameState.energy < 30) {
+                log('你太疲惫了，无法建造庇护所。需要休息恢复体力。');
+                return;
+            }
+            
+            // 消耗能量
+            gameState.energy = Math.max(0, gameState.energy - 30);
+            
+            // 消耗资源
+            consumeResources(gameConfig.recipes['简易庇护所'].requirements);
+            
+            // 建造庇护所
+            gameState.hasShelter = true;
+            gameState.shelterType = '简易庇护所';
+            
+            log('你成功建造了一个简易庇护所！现在你有了遮风挡雨的地方。');
+            gameState.morale = Math.min(100, gameState.morale + 20);
+            
+            updateInventory();
+            updateStats();
+            
+            // 时间前进
+            advanceTime();
+        }
+        
+        function gameOver() {
+            gameState.gameOver = true;
+            
+            log('你的健康值降至零。你无法继续在荒岛上生存...');
+            
+            const gameOverElement = document.createElement('div');
+            gameOverElement.className = 'game-over';
+            gameOverElement.textContent = '游戏结束';
+            
+            const statsElement = document.createElement('p');
+            statsElement.textContent = `你在荒岛上生存了 ${gameState.day} 天。`;
+            
+            const restartButton = document.createElement('button');
+            restartButton.className = 'restart-button';
+            restartButton.textContent = '重新开始';
+            restartButton.onclick = resetGame;
+            
+            elements.gameLog.appendChild(gameOverElement);
+            elements.gameLog.appendChild(statsElement);
+            elements.gameLog.appendChild(restartButton);
+            
+            // 禁用所有按钮
+            elements.exploreBtn.disabled = true;
+            elements.gatherBtn.disabled = true;
+            elements.huntBtn.disabled = true;
+            elements.waterBtn.disabled = true;
+            elements.restBtn.disabled = true;
+            elements.buildBtn.disabled = true;
+        }
+        
+        function resetGame() {
+            // 重置游戏状态
+            gameState.health = a00;
+            gameState.hunger = 100;
+            gameState.thirst = 100;
+            gameState.energy = 100;
+            gameState.morale = 80;
+            gameState.day = 1;
+            gameState.timeOfDay = 'morning';
+            gameState.currentLocation = 'beach';
+            gameState.discoveredLocations = ['beach'];
+            gameState.inventory = { '破布': 1, '木棍': 1 };
+            gameState.hasShelter = false;
+            gameState.shelterType = null;
+            gameState.gameOver = false;
+            
+            // 清空日志
+            elements.gameLog.innerHTML = `
+                <p>你睁开眼睛，发现自己躺在一片陌生的海滩上。阳光刺眼，海浪声不断。</p>
+                <p>你必须开始寻找食物、水和庇护所以生存下去。</p>
+            `;
+            
+            // 重新启用按钮
+            elements.exploreBtn.disabled = false;
+            elements.gatherBtn.disabled = false;
+            elements.huntBtn.disabled = false;
+            elements.waterBtn.disabled = false;
+            elements.restBtn.disabled = false;
+            
+            updateStats();
+            updateInventory();
+        }
+        
+        // 初始化标签页功能
+        function initTabs() {
+            elements.actionsTab.addEventListener('click', () => {
+                elements.actionsTab.classList.add('active');
+                elements.inventoryTab.classList.remove('active');
+                elements.craftingTab.classList.remove('active');
+                
+                elements.actionsContent.classList.add('active');
+                elements.inventoryContent.classList.remove('active');
+                elements.craftingContent.classList.remove('active');
+            });
+            
+            elements.inventoryTab.addEventListener('click', () => {
+                elements.actionsTab.classList.remove('active');
+                elements.inventoryTab.classList.add('active');
+                elements.craftingTab.classList.remove('active');
+                
+                elements.actionsContent.classList.remove('active');
+                elements.inventoryContent.classList.add('active');
+                elements.craftingContent.classList.remove('active');
+                
+                updateInventory();
+            });
+            
+            elements.craftingTab.addEventListener('click', () => {
+                elements.actionsTab.classList.remove('active');
+                elements.inventoryTab.classList.remove('active');
+                elements.craftingTab.classList.add('active');
+                
+                elements.actionsContent.classList.remove('active');
+                elements.inventoryContent.classList.remove('active');
+                elements.craftingContent.classList.add('active');
+                
+                updateCraftingRecipes();
+            });
+        }
+        
+        // 初始化按钮功能
+        function initButtons() {
+            elements.exploreBtn.addEventListener('click', explore);
+            elements.gatherBtn.addEventListener('click', () => gatherResources(false));
+            elements.huntBtn.addEventListener('click', findFood);
+            elements.waterBtn.addEventListener('click', findWater);
+            elements.restBtn.addEventListener('click', rest);
+            elements.buildBtn.addEventListener('click', buildShelter);
+        }
+        
+        // 初始化游戏
+        function initGame() {
+            initTabs();
+            initButtons();
+            updateStats();
+            updateInventory();
+        }
+        
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>
+
